@@ -1,4 +1,3 @@
-
 from pymodbus.server import StartAsyncTcpServer
 from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
 from pymodbus.datastore.store import ModbusSequentialDataBlock
@@ -20,19 +19,23 @@ last_apparent_power = 2500
 last_reactive_power = 0
 last_frequency = 50
 
+
 def float_to_registers(value):
-    return struct.unpack('<HH', struct.pack('<f', value))
+    return struct.unpack('>HH', struct.pack('>f', value))
+
 
 # Add this function to your script
 def smooth_random(last_value, min_value, max_value, smoothing_factor):
     target = random.uniform(min_value, max_value)
     return last_value + (target - last_value) * smoothing_factor
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Modbus TCP server for simulated meter")
     parser.add_argument('-p', '--port', type=int, default=5020,
                         help="Port to run the server on (default: 5020)")
     return parser.parse_args()
+
 
 # Define your custom Modbus table
 store = ModbusSlaveContext(
@@ -42,6 +45,7 @@ store = ModbusSlaveContext(
     di=ModbusSequentialDataBlock(0, [0] * 100)
 )
 context = ModbusServerContext(slaves=store, single=True)
+
 
 # Periodically update registers
 async def updating_writer(context):
@@ -71,7 +75,7 @@ async def updating_writer(context):
 
         # Update registers
         values = []
-        
+
         # Voltages (300001 - 300006)
         for voltage in voltages:
             values.extend(float_to_registers(voltage))
@@ -111,8 +115,10 @@ async def updating_writer(context):
 
         await asyncio.sleep(1)  # Update every second
 
+
 # Add this near the top of your file
 logging.basicConfig(level=logging.INFO)
+
 
 async def run_server(port):
     server_localhost = await StartAsyncTcpServer(context=context, address=("127.0.0.1", port))
@@ -135,6 +141,7 @@ async def main(port):
         logging.info("Tasks cancelled")
     finally:
         logging.info("Server stopped")
+
 
 if __name__ == "__main__":
     args = parse_args()
