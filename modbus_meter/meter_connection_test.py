@@ -1,17 +1,15 @@
 from pymodbus.client import ModbusTcpClient
 import struct
 
-
 def registers_to_float(registers):
     return struct.unpack('>f', struct.pack('>HH', registers[0], registers[1]))[0]
 
-
-client = ModbusTcpClient('192.168.2.165', port=5020)  # Replace with your Raspberry Pi's IP and chosen port
+client = ModbusTcpClient('172.16.101.196', port=5020)  # Replace with your Raspberry Pi's IP and chosen port
 if client.connect():
     print("Connected successfully")
 
     # Read all relevant registers
-    result = client.read_input_registers(2001, 53)  # Start from 2001 and read 53 registers
+    result = client.read_input_registers(address=2001, count=53)  # Use keyword arguments
     if not result.isError():
         # Extract and convert values
         voltage_1 = registers_to_float(result.registers[0:2])
